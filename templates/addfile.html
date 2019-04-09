@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% block content %}
+<form method=post enctype=multipart/form-data>
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <button id='btn_upload' class="btn btn-outline-primary" type="upload">Upload</button>
+        </div>
+        <div class="input-group-prepend">
+            <button id='btn_export' class="btn btn-outline-primary" type="export">Export OTTs</button>
+        </div>
+        <div class="custom-file">
+            <input type="file" name='file' multiple class="custom-file-input" id="file">
+            <label class="custom-file-label" for="file">Please choose the 12 HLI OTT reports</label>
+        </div>
+    </div>
+</form>
+{% for file in files %}
+    {% if file.endswith(zip_extension)%}
+        <article class="media content-section">
+            <div class="list-group">
+                <li class="list-group-item">OTT reports: {{ file }}</li>
+            </div>
+        </article>
+    {% endif %}
+{% endfor %}
+{% endblock content %}
+
+

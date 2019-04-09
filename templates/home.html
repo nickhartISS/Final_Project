@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="btn-group btn-group-toggle" data-toggle="buttons">
+    <label class="btn btn-secondary active">
+        <input type="radio" name="options" id="option1" autocomplete="off" checked> Upload OTT Files
+    </label>
+    <label class="btn btn-secondary">
+        <input type="radio" name="options" id="option2" autocomplete="off"> Delete OTT Reports
+    </label>
+    <label class="btn btn-secondary">
+        <input type="radio" name="options" id="option3" autocomplete="off"> Delete All Reports
+    </label>
+</div>
+{% for file in files %}
+    {% if file.endswith(xlsx_extension)%}
+        <article class="media content-section">
+            <div class="list-group">
+                <li class="list-group-item">OTT reports: {{ file }}</li>
+            </div>
+        </article>
+    {% endif %}
+{% endfor %}
+{% endblock content %}
