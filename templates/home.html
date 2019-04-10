@@ -15,7 +15,13 @@
     {% if file.endswith(xlsx_extension)%}
         <article class="media content-section">
             <div class="list-group">
-                <li class="list-group-item">OTT reports: {{ file }}</li>
+                <li class="list-group-item">OTT Reports: {{ file }}</li>
+            </div>
+        </article>
+    {% elif file.endswith(txt_extension)%}
+        <article class="media content-section">
+            <div class="list-group">
+                <li class="list-group-item">Territory Grouping: {{ file }}</li>
             </div>
         </article>
     {% endif %}
