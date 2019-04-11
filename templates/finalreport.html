@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="btn-group btn-group-toggle">
+    <form action = "{{url_for('hli_api_final_files')}}" method="POST">
+        <input id="btn_run_report" class="btn btn-outline-primary" type="submit" value="Run Report">
+    </form>
+</div>
+
+{% endblock content %}
