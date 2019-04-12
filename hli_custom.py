@@ -1,4 +1,4 @@
-import os, zipfile, csv, pandas as pd, numpy as np
+import os, zipfile, csv, datetime, pandas as pd, numpy as np
 from flask import Flask, flash, jsonify, request, redirect, render_template, url_for
 from werkzeug.utils import secure_filename
 
@@ -63,6 +63,7 @@ def hli_api_delete_files():
 @app.route("/finalfiles/", methods=['GET', 'POST'])
 def hli_api_final_files():
     files = os.listdir(excel_ott_dir)
+    report_date = datetime.datetime.now()
     df_aggregated_report = pd.DataFrame()
 
     if request.method == 'POST':
@@ -73,30 +74,37 @@ def hli_api_final_files():
                 df_quarter = pd.DataFrame()
 
                 # Reads all the HLI ott excel files
-                data_xlsx = pd.read_excel(os.path.join(excel_ott_dir, file), na_values=[''], skiprows=3, converters={"Zip Code": str},
-                    skip_blank_lines=False, usecols = "A:I")
+                data_xlsx = pd.read_excel(os.path.join(excel_ott_dir, file), na_values=[''], skiprows=3, converters={"Zip Code": str}, skip_blank_lines=False, usecols = "A:I")
                 df_quarter = df_quarter.append(data_xlsx)
                 df_quarter.insert(loc=0, column='Quarter', value=file[11:15] + ' ' + file[8:10], allow_duplicates=True)
 
-                # Reads the supplement territory_gropings file
                 for file in files:
 
                     if file.endswith(txt_extension) and 'HLI-LMS-Territory Groupings' in file:
-
                         df_groupings = pd.DataFrame()
 
+                        # Reads the supplement territory_groupings file
                         data_txt = pd.read_csv(os.path.join(excel_ott_dir, file), delimiter="\t")
                         df_groupings = df_groupings.append(data_txt)
-                        df_combine_ott_groupings = df_quarter.merge(df_groupings, left_on='Territory',
-                            right_on='TERRITORY_ID', how='left', sort=True)
-                        df_combine_ott_groupings.insert(loc=7, column='Division',
-                            value=df_combine_ott_groupings['Group: Divisional Managers'], allow_duplicates=True)
+                        df_combine_ott_groupings = df_quarter.merge(df_groupings, left_on='Territory', right_on='TERRITORY_ID', how='left', sort=True)
+                        df_combine_ott_groupings.insert(loc=7, column='Division', value=df_combine_ott_groupings['Group: Divisional Managers'], allow_duplicates=True)
                         df_combine_ott_groupings.Division.replace(np.NaN, 'Unassigned', inplace=True)
                         df_aggregated_report = df_aggregated_report.append(df_combine_ott_groupings)
 
+        # Final main dataframe that has aggregated report information
         df_aggregated_report.drop(df_aggregated_report.columns[11:20], axis=1, inplace=True)
+
+        # RIA only report that filters for where Division == Ed Cisowski
         df = df_aggregated_report.query('Division == "Ed Cisowski"')
-        df.to_excel(os.path.join(excel_ott_dir, 'HLI-LMS-022619 3 Year Trend Analysis (Cisowski - RIA).xlsx'), index=False)
+        df.to_excel(os.path.join(final_reports_dir, 'HLI-LMS-' + report_date.strftime("%m%d%y") + ' 3 Year Trend Analysis (Cisowski - RIA).xlsx'), index=False)
+
+        # Unassigned only report that filters for where Division == Unassigned
+        df = df_aggregated_report.query('Division == "Unassigned"')
+        df.to_excel(os.path.join(final_reports_dir, 'HLI-LMS-' + report_date.strftime("%m%d%y") + ' 3 Year Trend Analysis (Unassigned).xlsx'), index=False)
+
+        # Retail only report that filters for where Division != Ed Cisowski & Division != Unassigned
+        df = df_aggregated_report.query('Division != "Ed Cisowski" & Division != "Unassigned"')
+        df.to_excel(os.path.join(final_reports_dir, 'HLI-LMS-' + report_date.strftime("%m%d%y") + ' 3 Year Trend Analysis (Retail).xlsx'), index=False)
 
     return render_template('finalreport.html')
 
